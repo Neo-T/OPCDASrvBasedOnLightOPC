@@ -1,0 +1,29 @@
+HKCR
+{
+	iDCOM.ArithmeticLib.1 = s 'ArithmeticLib Class'
+	{
+		CLSID = s '{26597882-6249-4DB7-AB7C-049EFC3A0F4D}'
+	}
+	iDCOM.ArithmeticLib = s 'ArithmeticLib Class'
+	{		
+		CurVer = s 'iDCOM.ArithmeticLib.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {26597882-6249-4DB7-AB7C-049EFC3A0F4D} = s 'ArithmeticLib Class'
+		{
+			ProgID = s 'iDCOM.ArithmeticLib.1'
+			VersionIndependentProgID = s 'iDCOM.ArithmeticLib'
+			ForceRemove Programmable
+			LocalServer32 = s '%MODULE%'
+			{
+				val ServerExecutable = s '%MODULE_RAW%'
+			}
+
+			val AppID = s '%APPID%'
+
+			TypeLib = s '{E983A93B-5D02-417B-AEF1-D2A8D2BD58F1}'
+			Version = s '1.0'
+		}
+	}
+}

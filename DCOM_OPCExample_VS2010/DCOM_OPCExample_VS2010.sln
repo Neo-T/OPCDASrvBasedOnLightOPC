@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iDCOMTestSrv", "iDCOMTestSrv\iDCOMTestSrv.vcxproj", "{72FBB42C-84CB-4542-8E65-930E8F5EE7E6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iDCOMTestSrvPS", "iDCOMTestSrv\iDCOMTestSrvPS.vcxproj", "{AB56DA85-6172-4EDD-87DC-A4F14CA13507}"
+	ProjectSection(ProjectDependencies) = postProject
+		{72FBB42C-84CB-4542-8E65-930E8F5EE7E6} = {72FBB42C-84CB-4542-8E65-930E8F5EE7E6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iDCOMTestClient", "iDCOMTestClient\iDCOMTestClient.vcxproj", "{B4030587-3BDC-455E-A54D-2E40D34B7924}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{72FBB42C-84CB-4542-8E65-930E8F5EE7E6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{72FBB42C-84CB-4542-8E65-930E8F5EE7E6}.Debug|Win32.Build.0 = Debug|Win32
+		{72FBB42C-84CB-4542-8E65-930E8F5EE7E6}.Release|Win32.ActiveCfg = Release|Win32
+		{72FBB42C-84CB-4542-8E65-930E8F5EE7E6}.Release|Win32.Build.0 = Release|Win32
+		{AB56DA85-6172-4EDD-87DC-A4F14CA13507}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AB56DA85-6172-4EDD-87DC-A4F14CA13507}.Release|Win32.ActiveCfg = Release|Win32
+		{B4030587-3BDC-455E-A54D-2E40D34B7924}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B4030587-3BDC-455E-A54D-2E40D34B7924}.Debug|Win32.Build.0 = Debug|Win32
+		{B4030587-3BDC-455E-A54D-2E40D34B7924}.Release|Win32.ActiveCfg = Release|Win32
+		{B4030587-3BDC-455E-A54D-2E40D34B7924}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

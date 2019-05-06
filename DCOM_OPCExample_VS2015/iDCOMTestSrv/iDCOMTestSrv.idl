@@ -1,0 +1,36 @@
+// iDCOMTestSrv.idl : iDCOMTestSrv的 IDL 源
+//
+
+// 此文件将由 MIDL 工具处理以
+// 产生类型库(iDCOMTestSrv.tlb)和封送处理代码。
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(EB339DE6-ACDF-4AD8-B53D-E0492FFFA082),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IArithmeticLib : IDispatch{
+	[id(1)] HRESULT add([in] int nNum1, [in] int nNum2, [out] int * pnResult);
+	[id(2)] HRESULT sub([in] int nNum1, [in] int nNum2, [out] int * pnResult);
+};
+[
+	uuid(C5768E63-CFBB-425A-8E49-56038583D742),
+	version(1.0),
+]
+library iDCOMTestSrvLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(E4DC09F3-0EB5-492F-BF3E-6175ECB6B2D3)		
+	]
+	coclass ArithmeticLib
+	{
+		[default] interface IArithmeticLib;
+	};
+};
+
