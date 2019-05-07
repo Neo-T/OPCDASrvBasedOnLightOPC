@@ -154,6 +154,9 @@ Exit 1
 </Command>
       <Message>检查是否有所需的文件</Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName).dll $(SolutionDir)bin\$(ProjectName).dll</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="iDCOMTestSrvps.def" />

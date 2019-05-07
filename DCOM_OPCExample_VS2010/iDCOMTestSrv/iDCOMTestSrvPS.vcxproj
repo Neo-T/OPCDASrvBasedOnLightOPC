@@ -53,6 +53,9 @@ Exit 1
 </Command>
       <Message>检查是否有所需的文件</Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)$(Configuration)\$(ProjectName).dll $(SolutionDir)bin\$(ProjectName).dll</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

@@ -1,0 +1,50 @@
+############ UniLog Makefile for MinGW/gcc ########
+###################################################
+
+CCDIR   =d:/mingw
+MSDIR   =d:/Program\ Files/Microsoft\ Visual\ Studio/vc98
+
+###################################################
+INCLUDES =-idirafter $(MSDIR)/include
+#LIBDIR  =-L $(CCDIR)/lib
+CFLAGS_DEBUG=-s -Os -mcpu=i686
+CFLAGS  =-mthreads $(CFLAGS_DEBUG)
+# -Wall -Wno-parentheses
+
+LIBS =-ladvapi32 -lwsock32
+CC=gcc
+RC=windres -o $@
+LD=gcc
+AR=ar rc
+
+.SUFFIXES: .rc .res
+
+DLL  = unilog.dll
+STLIB = stunilog.lib
+IMPLIB = libunilog.a
+ALLTARG = $(DLL) $(STLIB) $(IMPLIB) rwlock.$(O) condsb.$(O)
+
+#######################################
+# Common targets & rules
+O=o
+RES=o
+include objects.mk
+
+#######################################
+# Delicate rules
+
+$(DLL) $(IMPLIB): dllmain.$(O) $(OBJ)
+	$(LD) -shared -Wl,--out-implib=$(IMPLIB) \
+-o$(DLL) unilog.def $^ $(LIBS) -s \
+-Wl,-M > unilog.map
+#	strip $(DLL)
+
+# A goot thing: works anywhere:
+	lib /machine:i386 /def:unilog.def
+	-del unilog.exp
+
+$(STLIB): $(OBJ)
+	$(AR) $@ $(OBJ)
+	ranlib $@
+
+##################################################
