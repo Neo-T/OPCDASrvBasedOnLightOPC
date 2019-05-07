@@ -20,13 +20,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\OPCDASrvProxyStupGenerator\dlldata.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\OPCDASrvProxyStupGenerator\opcda_i.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\OPCDASrvProxyStupGenerator\opcda_p.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\OPCDASrvProxyStupGenerator\dlldata.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
