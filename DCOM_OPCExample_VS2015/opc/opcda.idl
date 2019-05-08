@@ -36,7 +36,7 @@
 //		            Added new BAD Quality status mask
 //
 // 2002/08/09 CRT   Added IOPCITEMVQTstructure
-//		            Moved #defines to Library section and “typed?them
+//		            Moved #defines to Library section and “typed” them
 //		            Added definition for Category Ids
 //
 // 2002/08/21 RSA   Added asynchrounous UUIDs. Fixed formatting.
