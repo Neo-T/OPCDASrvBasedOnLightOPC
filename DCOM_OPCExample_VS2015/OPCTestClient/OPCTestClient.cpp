@@ -94,7 +94,7 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 			break;
 		}
 
-		//* 如果没有获取到DCOM组件的查询接口
+		//* 如果没有获取到DCOM组件的查询接
 		if (FAILED(stMultiQI.hr))
 		{
 			printf("获取组件的查询接口失败，错误码：0x%08X\r\n", stMultiQI.hr);
