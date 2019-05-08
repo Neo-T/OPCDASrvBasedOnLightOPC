@@ -20,7 +20,7 @@
 x64/
 x86/
 bld/
-[Bb]in/
+# [Bb]in/
 [Oo]bj/
 [Ll]og/
 
@@ -43,7 +43,7 @@ TestResult.xml
 # Build Results of an ATL Project
 [Dd]ebugPS/
 [Rr]eleasePS/
-dlldata.c
+# dlldata.c
 
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
@@ -61,6 +61,8 @@ StyleCopReport.xml
 # *_i.c
 # *_p.c
 # *_i.h
+*.dll
+*.exe
 *.ilk
 *.meta
 *.obj
