@@ -16,7 +16,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			COSERVERINFO stCoServerInfo;
 			COAUTHINFO stCoAuthInfo;
 			COAUTHIDENTITY stCoAuthID;
-			INT nSize = strlen("192.168.0.252") * sizeof(WCHAR);
+			INT nSize = strlen("192.168.xxx.xxx") * sizeof(WCHAR);
 			memset(&stCoServerInfo, 0, sizeof(stCoServerInfo));
 			stCoServerInfo.pwszName = (WCHAR *)CoTaskMemAlloc(nSize * sizeof(WCHAR));
 			if (!stCoServerInfo.pwszName)
@@ -26,12 +26,12 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 
 			ZeroMemory(&stCoAuthID, sizeof(COAUTHIDENTITY));
-			stCoAuthID.User = reinterpret_cast<USHORT *>("administrator");
-			stCoAuthID.UserLength = strlen("administrator");
+			stCoAuthID.User = reinterpret_cast<USHORT *>("user");
+			stCoAuthID.UserLength = strlen("user");
 			stCoAuthID.Domain = reinterpret_cast<USHORT *>("");
 			stCoAuthID.DomainLength = 0;
-			stCoAuthID.Password = reinterpret_cast<USHORT *>("winall@2018");
-			stCoAuthID.PasswordLength = strlen("winall@2018");
+			stCoAuthID.Password = reinterpret_cast<USHORT *>("password");
+			stCoAuthID.PasswordLength = strlen("password");
 			stCoAuthID.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
 
 			ZeroMemory(&stCoAuthInfo, sizeof(COAUTHINFO));
@@ -43,7 +43,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			stCoAuthInfo.pAuthIdentityData = &stCoAuthID;
 			stCoAuthInfo.dwCapabilities = EOAC_NONE;
 
-			mbstowcs(stCoServerInfo.pwszName, "192.168.0.252", nSize);
+			mbstowcs(stCoServerInfo.pwszName, "192.168.xxx.xxx", nSize);
 			stCoServerInfo.pAuthInfo = &stCoAuthInfo;
 			stCoServerInfo.dwReserved1 = 0;
 			stCoServerInfo.dwReserved2 = 0;

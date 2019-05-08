@@ -122,7 +122,6 @@ typedef interface IOPCItemMgt IOPCItemMgt;
 typedef interface IEnumOPCItemAttributes IEnumOPCItemAttributes;
 #endif 	/* __IEnumOPCItemAttributes_FWD_DEFINED__ */
 
-
 #ifndef __IOPCDataCallback_FWD_DEFINED__
 #define __IOPCDataCallback_FWD_DEFINED__
 typedef interface IOPCDataCallback IOPCDataCallback;

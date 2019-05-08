@@ -26,6 +26,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPCDASrvProxyStupGenerator"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPCDASrvProxyStub", "OPCDASrvProxyStub\OPCDASrvProxyStub.vcxproj", "{92D63E63-4BD5-4A40-AE72-C891EDFAF31C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPCTestClient", "OPCTestClient\OPCTestClient.vcxproj", "{84019BE4-583B-4DFF-83D9-F18F06571839}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +81,12 @@ Global
 		{92D63E63-4BD5-4A40-AE72-C891EDFAF31C}.Release|Win32.Build.0 = Release|Win32
 		{92D63E63-4BD5-4A40-AE72-C891EDFAF31C}.Template|Win32.ActiveCfg = Release|Win32
 		{92D63E63-4BD5-4A40-AE72-C891EDFAF31C}.Template|Win32.Build.0 = Release|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Debug|Win32.ActiveCfg = Debug|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Debug|Win32.Build.0 = Debug|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Release|Win32.ActiveCfg = Release|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Release|Win32.Build.0 = Release|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Template|Win32.ActiveCfg = Release|Win32
+		{84019BE4-583B-4DFF-83D9-F18F06571839}.Template|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
