@@ -15,8 +15,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="lightopc.lib" />
-    <Library Include="unilog.lib" />
-  </ItemGroup>
 </Project>

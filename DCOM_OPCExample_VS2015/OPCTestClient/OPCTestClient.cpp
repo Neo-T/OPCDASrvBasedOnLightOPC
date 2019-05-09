@@ -9,6 +9,24 @@
 #include "opcda.h"
 #include "OpcEnum.h"
 
+//* 获取控制台当前光标位置
+static void GetConsoleCursorPosition(SHORT *psX, SHORT *psY)
+{
+	CONSOLE_SCREEN_BUFFER_INFO pstConsoleScrBufInfo;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &pstConsoleScrBufInfo);
+	*psX = pstConsoleScrBufInfo.dwCursorPosition.X;
+	*psY = pstConsoleScrBufInfo.dwCursorPosition.Y;
+}
+
+//* 设置控制台光标位置
+static void SetConsoleCursorPosition(SHORT x, SHORT y)
+{
+	COORD stCoord;
+	stCoord.X = x;
+	stCoord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), stCoord);
+}
+
 //* 获取指定名称的OPC服务器的CLSID
 static INT __GetRemoteOPCSrvCLSIDByRegistry(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszPassword, CHAR *pszOPCSrvProgID, CHAR *pszOPCSrvCLSID)
 {
@@ -599,7 +617,9 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 	pohaItemSrv = (OPCHANDLE *)CoTaskMemAlloc(unItemSrvNum * sizeof(OPCHANDLE));
 	if (pohaItemSrv == NULL)
 	{
-		printf("无法为Item Server申请一块有效的内存，错误码：%d\r\n", GetLastError());
+		//* 因为是固定输出，这样处理可清除原先的输出
+		sprintf(szTip, "无法为Item Server申请一块有效的内存，错误码：%d\r\n", GetLastError());
+		printf("%-100s", szTip);
 		return -1;
 	}
 
@@ -628,11 +648,12 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 					FileTimeToSystemTime(&stFTLocal, &stSystime);
 					wsprintf(szTimestamp, _T("%02d:%02d:%02d:%03d"), stSystime.wHour, stSystime.wMinute, stSystime.wSecond, stSystime.wMilliseconds);
 
-					printf("『%s』 %-24s %s\r\n", pstaItem[i].szItemName, szVal, szTimestamp);
+					printf("『%+30s』 %-24s %s\r\n", pstaItem[i].szItemName, szVal, szTimestamp);
 				}
 				else
 				{
-					printf("不识别的数据类型！\r\n");
+					sprintf(szTip, "不识别的数据类型！\r\n");
+					printf("%-100s", szTip);
 				}				
 				
 				VariantClear(&pstValues[i].vDataValue);
@@ -643,7 +664,8 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 			tCurTime = time(NULL);
 			if ((tCurTime > tPrevTime) && ((tCurTime - tPrevTime) > 30))
 			{				
-				printf("读取变量数值时发生错误，错误编码为：0x%08X，该错误已持续一段时间(不少于30秒)，系统将被迫关闭!", hr);
+				sprintf(szTip, "读取变量数值时发生错误，错误编码为：0x%08X，该错误已持续一段时间(不少于30秒)，系统将被迫关闭!", hr);
+				printf("%-100s", szTip);
 				nRtnVal = -4;
 			}
 		}
@@ -713,9 +735,16 @@ int main(int argc, CHAR* argv[])
 				break;
 			}
 
+			//* 读取控制台当前光标位置，以便循环读取是固定输出位置，而不是整屏滚动输出
+			SHORT x, y;
+			GetConsoleCursorPosition(&x, &y);
+
 			blIsRunning = TRUE;			
 			while (blIsRunning)
 			{
+				//* 每次读取均设定在控制台同一输出位置
+				SetConsoleCursorPosition(x, y);
+
 				if (__ReadItem(staItem, sizeof(staItem) / sizeof(ST_OPC_ITEM)))
 					break;
 

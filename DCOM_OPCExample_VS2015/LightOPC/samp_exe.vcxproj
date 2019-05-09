@@ -273,10 +273,6 @@
     <ClCompile Include="sample.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lightopc.lib" />
-    <Library Include="unilog.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="LIBS.vcxproj">
       <Project>{1a9e8af2-615c-453a-aac7-e4ff8097de84}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
