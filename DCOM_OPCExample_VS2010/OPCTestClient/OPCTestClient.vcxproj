@@ -39,7 +39,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\opc;.\opc-sdk;.\;$(IncludePath)</IncludePath>
+    <IncludePath>..\opc;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -86,20 +86,14 @@
   <ItemGroup>
     <ClInclude Include="..\opc\opccomn.h" />
     <ClInclude Include="..\opc\opcda.h" />
-    <ClInclude Include="opc-sdk\datasink20.h" />
-    <ClInclude Include="opc-sdk\fixedsharedfile.h" />
-    <ClInclude Include="opc-sdk\group.h" />
-    <ClInclude Include="opc-sdk\item.h" />
-    <ClInclude Include="opc-sdk\shutdownsink.h" />
+    <ClInclude Include="OpcEnum.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\opc\opccomn_i.c" />
     <ClCompile Include="..\opc\opcda_i.c" />
-    <ClCompile Include="opc-sdk\datasink20.cpp" />
-    <ClCompile Include="opc-sdk\group.cpp" />
-    <ClCompile Include="opc-sdk\shutdownsink.cpp" />
+    <ClCompile Include="OpcEnum_i.c" />
     <ClCompile Include="OPCTestClient.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

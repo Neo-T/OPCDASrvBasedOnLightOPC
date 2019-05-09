@@ -24,21 +24,6 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="opc-sdk\datasink20.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="opc-sdk\fixedsharedfile.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="opc-sdk\group.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="opc-sdk\item.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="opc-sdk\shutdownsink.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\opc\opccomn.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -56,22 +41,13 @@
     <ClCompile Include="OPCTestClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="opc-sdk\datasink20.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="opc-sdk\group.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="opc-sdk\shutdownsink.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\opc\opccomn_i.c">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\opc\opcda_i.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="opc-sdk\OpcEnum_i.c">
+    <ClCompile Include="OpcEnum_i.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

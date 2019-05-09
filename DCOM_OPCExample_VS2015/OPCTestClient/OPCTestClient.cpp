@@ -4,16 +4,99 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <tchar.h>
+#include <cstring>
 #include "opccomn.h"
 #include "opcda.h"
-#include "fixedsharedfile.h"
-#include "shutdownsink.h"
-#include "group.h"
-#include "datasink20.h"
 #include "OpcEnum.h"
 
 //* 获取指定名称的OPC服务器的CLSID
-static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszPassword, CHAR *pszOPCSrvProgID, CHAR *pszOPCSrvCLSID)
+static INT __GetRemoteOPCSrvCLSIDByRegistry(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszPassword, CHAR *pszOPCSrvProgID, CHAR *pszOPCSrvCLSID)
+{
+	INT nRtnVal = 0;
+
+	//* 登录远程计算机
+	HANDLE hToken;
+	if (!LogonUser(pszUserName, pszIPAddr, pszPassword, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, &hToken))
+	{
+		printf("无法连接IP地址为%s的计算机，错误码：%d", pszIPAddr, GetLastError());
+		return -1;
+	}
+
+	//* 模拟当前登录的用户
+	ImpersonateLoggedOnUser(hToken);
+	{
+		do {
+			CHAR szKey[MAX_PATH + 1];
+			DWORD dwLen = MAX_PATH;
+			DWORD dwIdx = 0;
+			CHAR szCLSID[100];
+			LONG lSize;
+			HKEY hKey = HKEY_CLASSES_ROOT;			
+			DWORD dwRtnVal = RegConnectRegistry(pszIPAddr, HKEY_CLASSES_ROOT, &hKey);
+			if (dwRtnVal != ERROR_SUCCESS)
+			{
+				printf("无法连接IP地址为%s的计算机，错误码：%d", pszIPAddr, dwRtnVal);
+				nRtnVal = -2;
+				break;
+			}
+
+			printf("成功连接IP地址为%s的计算机，开始枚举该计算机系统上的注册表...\r\n", pszIPAddr);
+
+			//* 读取指定键值
+			if (RegEnumKey(hKey, dwIdx, szKey, dwLen) == ERROR_SUCCESS)
+			{
+				HKEY hSubKey;
+
+				//* 打开指定名称的OPC服务器所在的键，在这里就是"OPC.LightOPC-exe"
+				sprintf(szKey, pszOPCSrvProgID);
+
+				//* 打开指定键值并取值
+				if (RegOpenKey(hKey, szKey, &hSubKey) == ERROR_SUCCESS)
+				{
+					memset(szCLSID, 0, sizeof(szCLSID));
+					lSize = sizeof(szCLSID) - 1;
+					if (RegQueryValue(hSubKey, "CLSID", szCLSID, &lSize) == ERROR_SUCCESS)
+					{
+						if (RegQueryValue(hSubKey, "OPC", NULL, NULL) == ERROR_SUCCESS)
+						{
+							sprintf(pszOPCSrvCLSID, "%s", szCLSID);
+							printf("『%s』服务已找到：%s\r\n", pszOPCSrvProgID, pszOPCSrvCLSID);
+						}
+						else
+						{
+							printf("查询OPC键失败，错误码：%d\r\n", GetLastError());
+							nRtnVal = -6;
+						}
+					}
+					else
+					{ 
+						printf("查询CLSID键失败，错误码：%d\r\n", GetLastError());
+						nRtnVal = -5;
+					}
+
+					RegCloseKey(hSubKey);					
+				}
+				else
+				{
+					printf("RegOpenKey()函数执行失败，错误码：%d\r\n", GetLastError());
+					nRtnVal = -4;
+				}
+			}
+			else
+			{
+				printf("RegEnumKey()函数执行失败，错误码：%d\r\n", GetLastError());
+				nRtnVal = -3;
+			}
+
+		} while (FALSE);		
+	}	
+	RevertToSelf();	//* 结束模拟
+
+	return nRtnVal;
+}
+
+//* 获取指定名称的OPC服务器的CLSID
+static INT __GetRemoteOPCSrvCLSIDByOPCEnum(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszPassword, CHAR *pszOPCSrvProgID, CHAR *pszOPCSrvCLSID)
 {
 	HRESULT hr;
 	INT nRtnVal = 0;
@@ -64,7 +147,7 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 
 		MULTI_QI stMultiQI;
 		ZeroMemory(&stMultiQI, sizeof(stMultiQI));
-		stMultiQI.pIID = &IID_IOPCServerList;	//* 参见iDCOMTestSrv_i.c
+		stMultiQI.pIID = &IID_IOPCServerList;	//* 参见opccomn_i.c
 		stMultiQI.pItf = NULL;
 
 		//* 初始化安全结构，模拟登录远程机器
@@ -106,8 +189,8 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 		CComPtr<IOPCServerList> pobjOPCSrvList = (IOPCServerList *)stMultiQI.pItf;
 		IEnumGUID *pobjEnumGUID = NULL;
 		CLSID stCLSID;
-		DWORD dwCount;
-		LPOLESTR szProgId, szUserType;
+		DWORD dwCeltFetchedNum;
+		LPOLESTR wszProgID, wszUserType;
 		CLSID stCatID = CATID_OPCDAServer20;
 		hr = pobjOPCSrvList->EnumClassesOfCategories(1, &stCatID, 1, &stCatID, &pobjEnumGUID);
 		if (FAILED(hr))
@@ -118,9 +201,11 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 		}
 
 		//* 开始枚举服务器并获取指定ProgID的CLSID
-		while (SUCCEEDED(pobjEnumGUID->Next(1, &stCLSID, &dwCount)))
+		while (SUCCEEDED(pobjEnumGUID->Next(1, &stCLSID, &dwCeltFetchedNum)))
 		{
-			hr = pobjOPCSrvList->GetClassDetails(stCLSID, &szProgId, &szUserType);
+			if (!dwCeltFetchedNum)
+				break;
+			hr = pobjOPCSrvList->GetClassDetails(stCLSID, &wszProgID, &wszUserType);
 			if (FAILED(hr))
 			{
 				printf("GetClassDetails()函数执行失败，错误码：0x%08X\r\n", hr);
@@ -128,11 +213,29 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 				break;
 			}
 
-			printf("%lls\r\n", szProgId);
+			CHAR szProgID[100];
+			CString cstrProgID = wszProgID;
+			sprintf(szProgID, "%s", cstrProgID);			
 
-			//* 是否占用的内存
-			CoTaskMemFree(szProgId);
-			CoTaskMemFree(szUserType);
+			if(!strcmp(pszOPCSrvProgID, szProgID))
+			{ 
+				BSTR wszCLSID;				
+				StringFromCLSID(stCLSID, &wszCLSID);
+				CString cstrCLSID = wszCLSID;
+
+				sprintf(pszOPCSrvCLSID, "%s", cstrCLSID);
+				printf("『%s』服务已找到：%s\r\n", pszOPCSrvProgID, pszOPCSrvCLSID);
+
+				//* 释放占用的内存
+				CoTaskMemFree(wszProgID);
+				CoTaskMemFree(wszUserType);
+
+				break;
+			}			
+
+			//* 释放占用的内存
+			CoTaskMemFree(wszProgID);
+			CoTaskMemFree(wszUserType);
 		}
 	} while (FALSE);
 		
@@ -148,7 +251,10 @@ static INT __GetRemoteOPCSrvCLSID(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszP
 //* 也就是不再使用OPCHANDLER作为参数类型，显式的采用LONG64类型
 int main(int argc, CHAR* argv[])
 {
-	__GetRemoteOPCSrvCLSID(argv[1], argv[2], argv[3], NULL, NULL);
+	CHAR szCLSID[100];
+
+	__GetRemoteOPCSrvCLSIDByOPCEnum(argv[1], argv[2], argv[3], argv[4], szCLSID);
+	__GetRemoteOPCSrvCLSIDByRegistry(argv[1], argv[2], argv[3], argv[4], szCLSID);
 
     return 0;
 }
