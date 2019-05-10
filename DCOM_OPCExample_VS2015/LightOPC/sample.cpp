@@ -333,8 +333,15 @@ int WriteTags(const loCaller *ca,
 
       case TI_lulu:
         hr = VariantChangeType(&tv[TI_lulu].tvValue, &values[ii], 0, VT_I2);
-        if (S_OK == hr)
-          lo_statperiod(V_I2(&tv[TI_lulu].tvValue)); /* VERY OPTIONAL, really */
+		if (S_OK == hr)
+		{
+			lo_statperiod(V_I2(&tv[TI_lulu].tvValue)); /* VERY OPTIONAL, really */
+
+			FILETIME ft;
+			GetSystemTimeAsFileTime(&ft); /* awoke */
+			tv[TI_lulu].tvState.tsTime = ft;
+		}
+          
           /* The splining factor for bandwidth calculations/trending */
         break;
 
@@ -883,9 +890,9 @@ double zuzu =
       V_VT(&tv[TI_zuzu].tvValue) = VT_R8;
       tv[TI_zuzu].tvState.tsTime = ft;
 
-      V_I2(&tv[TI_lulu].tvValue) = (short)zuzu;
-      V_VT(&tv[TI_lulu].tvValue) = VT_I2;
-      tv[TI_lulu].tvState.tsTime = ft;
+      //V_I2(&tv[TI_lulu].tvValue) = (short)zuzu;
+      //V_VT(&tv[TI_lulu].tvValue) = VT_I2;
+      //tv[TI_lulu].tvState.tsTime = ft;
 
       V_I2(&tv[TI_enum].tvValue) = (short)((ft.dwLowDateTime >> 22) % 7);
       V_VT(&tv[TI_enum].tvValue) = VT_I2;

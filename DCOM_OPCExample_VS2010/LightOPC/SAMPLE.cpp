@@ -20,7 +20,7 @@
 #define _WIN32_DCOM
 #include <windows.h>
 #include "unilog.h"
-#define LOGID log,0
+#define LOGID logg,0
 #include <ole2.h>
 #include <olectl.h>
 #include <oleauto.h>
@@ -39,7 +39,7 @@ static LONG server_process;
 #define CoQueryClientBlanket(a,b,c,d,e,userid,f) (*((const wchar_t**)userid)=L"Wine!")
 #endif
 
-unilog *log;                    /* logging entry */
+unilog *logg;                    /* logging entry */
 int use_console = 0;
 int test_mode = 0;
 
@@ -333,8 +333,15 @@ int WriteTags(const loCaller *ca,
 
       case TI_lulu:
         hr = VariantChangeType(&tv[TI_lulu].tvValue, &values[ii], 0, VT_I2);
-        if (S_OK == hr)
-          lo_statperiod(V_I2(&tv[TI_lulu].tvValue)); /* VERY OPTIONAL, really */
+		if (S_OK == hr)
+		{
+			lo_statperiod(V_I2(&tv[TI_lulu].tvValue)); /* VERY OPTIONAL, really */
+
+			FILETIME ft;
+			GetSystemTimeAsFileTime(&ft); /* awoke */
+			tv[TI_lulu].tvState.tsTime = ft;
+		}
+          
           /* The splining factor for bandwidth calculations/trending */
         break;
 
@@ -883,9 +890,9 @@ double zuzu =
       V_VT(&tv[TI_zuzu].tvValue) = VT_R8;
       tv[TI_zuzu].tvState.tsTime = ft;
 
-      V_I2(&tv[TI_lulu].tvValue) = (short)zuzu;
-      V_VT(&tv[TI_lulu].tvValue) = VT_I2;
-      tv[TI_lulu].tvState.tsTime = ft;
+      //V_I2(&tv[TI_lulu].tvValue) = (short)zuzu;
+      //V_VT(&tv[TI_lulu].tvValue) = VT_I2;
+      //tv[TI_lulu].tvState.tsTime = ft;
 
       V_I2(&tv[TI_enum].tvValue) = (short)((ft.dwLowDateTime >> 22) % 7);
       V_VT(&tv[TI_enum].tvValue) = VT_I2;
@@ -1029,11 +1036,11 @@ int mymine(HINSTANCE hInstance, int argc, char *argv[])
   const char *exit_msg = "Exiting...";
   server_module = hInstance;
 
-  log = unilog_Create("LOPC-exe", "|LOPC-exe", "%!T", -1,       /* Max filesize: -1 unlimited, -2 -don't change */
+  logg = unilog_Create("LOPC-exe", "|LOPC-exe", "%!T", -1,       /* Max filesize: -1 unlimited, -2 -don't change */
                       ll_MESSAGE);        /* level [ll_FATAL...ll_DEBUG] */
   unilog_Redirect("LOPC-exe", "LightOPC", 0);
-  unilog_Delete(log);
-  log = unilog_Create("Lopc-Sample-exe", "|Lopc-Sample-exe", "", -1,    /* Max filesize: -1 unlimited, -2 -don't change */
+  unilog_Delete(logg);
+  logg = unilog_Create("Lopc-Sample-exe", "|Lopc-Sample-exe", "", -1,    /* Max filesize: -1 unlimited, -2 -don't change */
                       ll_TRACE);        /* level [ll_FATAL...ll_DEBUG] */
   UL_DEBUG((LOGID, "WinMain(%s) invoked...", argv[0]));
 
@@ -1174,8 +1181,8 @@ Finish:
   if (use_console) puts(exit_msg);
 
   UL_DEBUG((LOGID, "WinMain(%s) finished", argv[0]));
-  unilog_Delete(log);
-  log = 0;
+  unilog_Delete(logg);
+  logg = 0;
   return main_rc;
 }
 
@@ -1232,11 +1239,11 @@ extern "C"
     {
       server_module = hinstDLL;
 
-      log = unilog_Create("LOPC-dll", "|LOPC-dll", "%!T", -1,   /* Max filesize: -1 unlimited, -2 -don't change */
+      logg = unilog_Create("LOPC-dll", "|LOPC-dll", "%!T", -1,   /* Max filesize: -1 unlimited, -2 -don't change */
                           ll_DEBUG);    /* level [ll_FATAL...ll_DEBUG] */
       unilog_Redirect("LOPC-dll", "LightOPC", 0);
-      unilog_Delete(log);
-      log = unilog_Create("Lopc-Sample-dll", "|Lopc-Sample-dll", "", -1,        /* Max filesize: -1 unlimited, -2 -don't change */
+      unilog_Delete(logg);
+      logg = unilog_Create("Lopc-Sample-dll", "|Lopc-Sample-dll", "", -1,        /* Max filesize: -1 unlimited, -2 -don't change */
                           ll_DEBUG);    /* level [ll_FATAL...ll_DEBUG] */
       UL_DEBUG((LOGID, "DllMAin(process_attach)"));
       //driver_init();    /* not the best place */
@@ -1245,8 +1252,8 @@ extern "C"
     {
 
       UL_DEBUG((LOGID, "DllMAin(process_detach)"));
-      unilog_Delete(log);
-      log = 0;
+      unilog_Delete(logg);
+      logg = 0;
       //driver_destroy(); /* not the best place */
     }
 
