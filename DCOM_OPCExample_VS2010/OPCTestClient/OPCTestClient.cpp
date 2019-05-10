@@ -1,16 +1,39 @@
 // OPCTestClient.cpp : 定义控制台应用程序的入口点。
 //
 #include "stdafx.h"
-#include <stdlib.h>
-#include <tchar.h>
-
-#include "stdafx.h"
 #include <stdio.h>
 #include <tchar.h>
 #include <cstring>
 #include "opccomn.h"
 #include "opcda.h"
 #include "OpcEnum.h"
+
+//* 隐藏或显示控制台光标
+static void ShowConsoleCursor(BOOL blIsShow)
+{
+	CONSOLE_CURSOR_INFO stCursorInfo;
+	GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &stCursorInfo);
+	stCursorInfo.bVisible = blIsShow;
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &stCursorInfo);
+}
+
+//* 获取控制台当前光标位置
+static void GetConsoleCursorPosition(SHORT *psX, SHORT *psY)
+{
+	CONSOLE_SCREEN_BUFFER_INFO stConsoleScrBufInfo;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &stConsoleScrBufInfo);
+	*psX = stConsoleScrBufInfo.dwCursorPosition.X;
+	*psY = stConsoleScrBufInfo.dwCursorPosition.Y;
+}
+
+//* 设置控制台光标位置
+static void SetConsoleCursorPosition(SHORT x, SHORT y)
+{
+	COORD stCoord;
+	stCoord.X = x;
+	stCoord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), stCoord);
+}
 
 //* 获取指定名称的OPC服务器的CLSID
 static INT __GetRemoteOPCSrvCLSIDByRegistry(CHAR *pszIPAddr, CHAR *pszUserName, CHAR *pszPassword, CHAR *pszOPCSrvProgID, CHAR *pszOPCSrvCLSID)
@@ -248,7 +271,6 @@ static INT __GetRemoteOPCSrvCLSIDByOPCEnum(CHAR *pszIPAddr, CHAR *pszUserName, C
 	return nRtnVal;
 }
 
-
 //* OPC规范提供的查询接口索引
 #define MQI_IOPCSERVER		0
 #define MQI_IOPCCOMMON		1
@@ -290,7 +312,8 @@ public:
 
 typedef struct _ST_OPC_ITEM_ {
 	OPCHANDLE ohItemSrv;
-	CHAR szItemName[50];
+	CHAR szItemName[50];	//* 变量名称
+	VARTYPE vtDataType;		//* 变量的数据类型
 } ST_OPC_ITEM, *PST_OPC_ITEM;
 
 CKGroup *pobjGroup;
@@ -490,6 +513,8 @@ static void __DisconnectOPCServer(void)
 		pIServer->Release();
 
 	CoUninitialize();
+
+	printf("与服务器的连接成功断开！\r\n");
 }
 
 BOOL MapVariantValToString(CHAR *pszVal, VARIANT *pvtVal, VARTYPE vtType)
@@ -598,9 +623,11 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 	CHAR szTip[256];
 
 	pohaItemSrv = (OPCHANDLE *)CoTaskMemAlloc(unItemSrvNum * sizeof(OPCHANDLE));
-	if (pohaItemSrv == NULL)
+	if (!pohaItemSrv)
 	{
-		printf("无法为Item Server申请一块有效的内存，错误码：%d\r\n", GetLastError());
+		//* 因为是固定输出，这样处理可清除原先的输出
+		sprintf(szTip, "无法为Item Server申请一块有效的内存，错误码：%d\r\n", GetLastError());
+		printf("%-100s", szTip);
 		return -1;
 	}
 
@@ -629,11 +656,12 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 					FileTimeToSystemTime(&stFTLocal, &stSystime);
 					wsprintf(szTimestamp, _T("%02d:%02d:%02d:%03d"), stSystime.wHour, stSystime.wMinute, stSystime.wSecond, stSystime.wMilliseconds);
 
-					printf("『%s』 %-24s %s\r\n", pstaItem[i].szItemName, szVal, szTimestamp);
+					printf("『%+5s』 %-24s %s\r\n", pstaItem[i].szItemName, szVal, szTimestamp);
 				}
 				else
 				{
-					printf("不识别的数据类型！\r\n");
+					sprintf(szTip, "不识别的数据类型！\r\n");
+					printf("%-100s", szTip);
 				}				
 				
 				VariantClear(&pstValues[i].vDataValue);
@@ -644,7 +672,8 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 			tCurTime = time(NULL);
 			if ((tCurTime > tPrevTime) && ((tCurTime - tPrevTime) > 30))
 			{				
-				printf("读取变量数值时发生错误，错误编码为：0x%08X，该错误已持续一段时间(不少于30秒)，系统将被迫关闭!", hr);
+				sprintf(szTip, "读取变量数值时发生错误，错误编码为：0x%08X，该错误已持续一段时间(不少于30秒)，系统将被迫关闭!", hr);
+				printf("%-100s", szTip);
 				nRtnVal = -4;
 			}
 		}
@@ -664,6 +693,60 @@ static INT __ReadItem(PST_OPC_ITEM pstaItem, UINT unItemSrvNum)
 	return nRtnVal;
 }
 
+//* 向OPC服务器写数据
+static INT __WriteItem(PST_OPC_ITEM pstItem, ULONG ulVal)
+{
+	INT nRtnVal = 0;
+
+	OPCHANDLE *phItemSrv = NULL;
+	VARIANT *pvtValues = NULL;
+	HRESULT *phErrors = NULL;
+	HRESULT hRslt = E_FAIL;
+	INT i;
+	CHAR szItemStringVal[128];
+
+	phItemSrv = (OPCHANDLE *)CoTaskMemAlloc(sizeof(OPCHANDLE));
+	if (!phItemSrv)
+	{
+		printf("无法申请一块有效的COM组件内存用于保存服务端句柄!\r\n");
+
+		return -1;
+	}
+
+	pvtValues = (VARIANT *)CoTaskMemAlloc(sizeof(VARIANT));
+	if (!pvtValues)
+	{
+		CoTaskMemFree(phItemSrv);
+
+		printf("无法申请一块有效的COM组件内存用于传递要写入的过程变量值!\r\n");
+
+		return -2;
+	}
+
+	pvtValues[0].vt = pstItem->vtDataType;	
+	pvtValues[0].ulVal = ulVal;
+
+	*phItemSrv = pstItem->ohItemSrv;
+
+	try {
+		hRslt = pISync->Write(1, phItemSrv, pvtValues, &phErrors);
+
+		VariantClear(&pvtValues[0]);
+	}
+	catch (...) {
+		printf("Write()函数执行失败！\r\n");
+		nRtnVal = -3;
+	}
+
+	CoTaskMemFree(phItemSrv);
+	CoTaskMemFree(pvtValues);
+
+	if (phErrors)
+		CoTaskMemFree(phErrors);
+
+	return nRtnVal;
+}
+
 volatile BOOL blIsRunning;
 BOOL WINAPI ConsoleHandler(DWORD CEvent)
 {
@@ -674,7 +757,7 @@ BOOL WINAPI ConsoleHandler(DWORD CEvent)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-		CHAR szCLSID[100];
+	CHAR szCLSID[100];
 
 	if (argc != 5)
 	{
@@ -702,23 +785,58 @@ int _tmain(int argc, _TCHAR* argv[])
 				break;
 			}
 
-			ST_OPC_ITEM staItem[1];	
-
+			//* 手动添加要操作的变量
+			//* =======================================================
+			ST_OPC_ITEM staItem[2];	
 			sprintf(staItem[0].szItemName, "lulu");
-			if (__AddItemToLocalMgmtIf(staItem[0].szItemName, VT_I2, &staItem[0].ohItemSrv))	//* exe_samp工程之sample.cpp文件第573行“lulu”变量为VT_I2类型
+			staItem[0].vtDataType = VT_I2;
+			if (__AddItemToLocalMgmtIf(staItem[0].szItemName, staItem[0].vtDataType, &staItem[0].ohItemSrv))	//* exe_samp工程之sample.cpp文件第573行“lulu”变量为VT_I2类型
 			{
-				printf("__AddItemToLocalMgmtIf()函数执行失败，进程退出！\r\n");
+				printf("__AddItemToLocalMgmtIf()函数添加变量[lulu]执行失败，进程退出！\r\n");
 				break;
 			}
 
-			blIsRunning = TRUE;			
+			sprintf(staItem[1].szItemName, "zuzu");
+			staItem[1].vtDataType = VT_R8;
+			if (__AddItemToLocalMgmtIf(staItem[1].szItemName, staItem[1].vtDataType, &staItem[1].ohItemSrv))	//* exe_samp工程之sample.cpp文件第564行“zuzu”变量为VT_R8类型
+			{
+				printf("__AddItemToLocalMgmtIf()函数添加变量[zuzu]执行失败，进程退出！\r\n");
+				break;
+			}
+			//* =======================================================
+
+			//* 隐藏控制台光标
+			ShowConsoleCursor(FALSE);
+
+			//* 读取控制台当前光标位置，以便循环读取是固定输出位置，而不是整屏滚动输出
+			SHORT x, y;
+			GetConsoleCursorPosition(&x, &y);
+
+			time_t tPrevWriteTime = time(NULL);
+			ULONG ulWriteVal = 2009;
+
+			blIsRunning = TRUE;
 			while (blIsRunning)
 			{
+				//* 每次读取均设定在控制台同一输出位置
+				SetConsoleCursorPosition(x, y);
+
 				if (__ReadItem(staItem, sizeof(staItem) / sizeof(ST_OPC_ITEM)))
 					break;
 
-				Sleep(1000);				
+				Sleep(100);	
+
+				if (time(NULL) - tPrevWriteTime > 1)
+				{
+					if (__WriteItem(&staItem[0], ulWriteVal++))
+						break;
+
+					tPrevWriteTime = time(NULL);
+				}
 			}
+
+			//* 恢复控制台光标
+			ShowConsoleCursor(TRUE);
 
 		} while (FALSE);
 
@@ -730,7 +848,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("__ConnOPCServer()函数执行失败，进程退出！\r\n");
 		return -3;
 	}
-
-	return 0;
+		
+    return 0;
 }
 
